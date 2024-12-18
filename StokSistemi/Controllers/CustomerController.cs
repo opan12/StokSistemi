@@ -34,6 +34,10 @@ namespace StokSistemi.Controllers
 
         public IActionResult Index()
         {
+            if (SystemState.IsAdminProcessing)
+            {
+                return Json(new { success = false, message = "Admin işlem yapıyor. Lütfen daha sonra tekrar deneyin." });
+            }
             var model = new CustomerViewModel
             {
                // Customers = _customerQueue.GetAllCustomers(), // Tüm müşterileri al

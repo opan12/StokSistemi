@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using YAZLAB2.Models;
-using YAZLAB2.Services;
+using StokSistemi.Models;
+using StokSistemi.Services;
 
 namespace YAZLAB2.Controllers
 {

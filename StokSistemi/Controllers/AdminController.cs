@@ -26,6 +26,10 @@ namespace StokSistemi.Controllers
             var products = _adminService.GetAllProducts(); // Senkron olarak ürünleri getir
             return View(products);
         }
+        public static class SystemState
+{
+    public static bool IsAdminProcessing { get; set; } = false;
+}
 
         public IActionResult PendingOrders()
         {
@@ -36,6 +40,8 @@ namespace StokSistemi.Controllers
         // Ürün ekleme formu (GET)
         public IActionResult Create()
         {
+            SystemState.IsAdminProcessing = true;
+
             return View(); // Ürün ekleme formunu döner
         }
 
@@ -58,6 +64,8 @@ namespace StokSistemi.Controllers
             }
             finally
             {
+                SystemState.IsAdminProcessing = false;
+
                 _mutex.ReleaseMutex(); // Mutex'i serbest bırak
             }
         }
