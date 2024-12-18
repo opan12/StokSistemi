@@ -79,7 +79,14 @@ namespace StokSistemi.Controllers
                     {
                         return Json(new { success = false, message = $"Yetersiz stok: {product.Stock} adet mevcut." });
                     }
+                    var totalOrderedQuantity = _context.Orders
+               .Where(o => o.CustomerId == customerId && o.ProductId == order.ProductId)
+               .Sum(o => o.Quantity);
 
+                    if (totalOrderedQuantity + order.Quantity > 5)
+                    {
+                        return Json(new { success = false, message = $"Ürün ID {order.ProductId} için toplamda en fazla 5 adet sipariş verebilirsiniz. Daha önce {totalOrderedQuantity} adet sipariş verdiniz." });
+                    }
                     var newOrder = CreateOrder(customerId, order, product);
                     newOrder.EnqueueTime = DateTime.Now; // Kuyruğa eklenme zamanı
 
