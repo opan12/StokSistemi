@@ -110,7 +110,8 @@
                                         <td>${order.quantity}</td>
                                         <td>${new Date(order.orderDate).toLocaleString('tr-TR')}</td>
                                         <td class="${statusClass}">${order.orderStatus}</td>
-                                        <td>${formattedWaitingTime}</td>
+                                       <td>${order.priorityScore.toFixed(2)}</td> <!-- Öncelik Skoru eklendi -->
+                                       <td>${formattedWaitingTime}</td>
                                     </tr>
                                 `);
                             });
@@ -143,7 +144,7 @@
             loadOrders();
 
             // Belirli aralıklarla sipariş durumu güncelle (örnek: her 10 saniye)
-            setInterval(loadOrders, 10000);
+            setInterval(loadOrders, 10);
         });
 
        

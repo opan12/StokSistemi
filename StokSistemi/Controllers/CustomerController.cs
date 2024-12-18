@@ -231,7 +231,11 @@ namespace StokSistemi.Controllers
                     o.OrderId,
                     o.OrderDate,
                     o.Quantity,
-                    o.ProductId
+                    o.ProductId,
+                            o.OrderStatus,
+                            o.PriorityScore
+
+
                 }).ToList();
 
             if (!orders.Any())
