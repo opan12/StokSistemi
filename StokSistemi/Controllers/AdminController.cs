@@ -118,7 +118,7 @@ namespace StokSistemi.Controllers
             {
                 lock (_mutex)
                 {
-                    order.OrderStatus = "Onaylandı";
+                    order.OrderStatus = "İşleniyor";
                     _context.SaveChanges();
                     ProcessOrder(order);
 
@@ -158,7 +158,7 @@ namespace StokSistemi.Controllers
                         customer.TotalSpent += product.Price * orderQueue.Quantity; // Müşteri harcamalarının artışı
 
                         // Müşteri tipi güncelleniyor
-                        if (customer.TotalSpent >= 2000 && customer.CustomerType == "Standard")
+                        if (customer.TotalSpent >= 2000 && customer.CustomerType == "Premium")
                         {
                             customer.CustomerType = "Premium";
                         }
