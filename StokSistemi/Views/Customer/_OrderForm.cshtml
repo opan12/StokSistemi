@@ -1,0 +1,28 @@
+﻿@model StokSistemi.Models.CustomerViewModel
+
+<h3>Yeni Sipariş Oluştur</h3>
+<form asp-action="PlaceOrder" method="post">
+    <div class="form-group">
+        <label for="customerId">Müşteri ID</label>
+        <select name="customerId" class="form-control" required>
+            @foreach (var customer in Model.Customers)
+            {
+                <option value="@customer.Id">@customer.UserName</option>
+            }
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="productId">Ürün Seçimi</label>
+        <select name="productId" class="form-control" required>
+            @foreach (var product in Model.Products)
+            {
+                <option value="@product.ProductId">@product.ProductName</option>
+            }
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="quantity">Adet</label>
+        <input type="number" name="quantity" min="1" max="5" class="form-control" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Sipariş Ver</button>
+</form>

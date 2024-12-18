@@ -1,0 +1,29 @@
+﻿@model List<StokSistemi.Models.Customer>
+
+<h3>Müşteri Listesi</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Customer ID</th>
+            <th>Ad</th>
+            <th>Tür</th>
+            <th>Bütçe</th>
+            <th>Bekleme Süresi</th>
+            <th>Öncelik Skoru</th>
+            <th>Durum</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var customer in Model)
+        {
+            <tr>
+                <td>@customer.Id</td>
+                <td>@customer.UserName</td>
+                <td>@customer.CustomerType</td>
+                <td>@customer.Budget</td>
+                <td>@customer.WaitingTime.TotalSeconds</td>
+                <td>@customer.PriorityScore</td>
+            </tr>
+        }
+    </tbody>
+</table>

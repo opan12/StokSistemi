@@ -1,0 +1,20 @@
+﻿@model StokSistemi.Models.Product
+
+<h2>Ürünü Düzenle</h2>
+
+<form asp-action="Edit" method="post">
+    <div>
+        <label>Ürün Adı:</label>
+        <input type="text" asp-for="ProductName" required />
+    </div>
+    <div>
+        <label>Stok:</label>
+        <input type="number" asp-for="Stock" required />
+    </div>
+    <div>
+        <label>Fiyat:</label>
+        <input type="number" asp-for="Price" required step="0.01" />
+    </div>
+    <input type="hidden" asp-for="ProductId" />
+    <button type="submit">Güncelle</button>
+</form>

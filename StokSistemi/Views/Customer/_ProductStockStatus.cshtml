@@ -1,0 +1,22 @@
+﻿@model List<StokSistemi.Models.Product>
+
+<h3>Ürün Stok Durumu</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Ürün Adı</th>
+            <th>Stok Miktarı</th>
+            <th>Fiyat</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var product in Model)
+        {
+            <tr>
+                <td>@product.ProductName</td>
+                <td class="@(product.Stock < 10 ? "text-danger" : "")">@product.Stock</td>
+                <td>@product.Price</td>
+            </tr>
+        }
+    </tbody>
+</table>

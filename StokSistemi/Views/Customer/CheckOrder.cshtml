@@ -1,0 +1,126 @@
+﻿@{
+    ViewData["Title"] = "Siparişlerim";
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Siparişlerim</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .status-pending {
+            color: orange;
+        }
+
+        .status-approved {
+            color: yellow; /* Sarı */
+        }
+
+        .status-completed {
+            color: green;
+        }
+
+        .status-out-of-stock {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Hoş Geldiniz!</h1>
+    <p>Siparişleriniz aşağıda listelenmektedir:</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Sipariş ID</th>
+                <th>Ürün ID</th>
+                <th>Adet</th>
+                <th>Sipariş Tarihi</th>
+                <th>Durum</th>
+            </tr>
+        </thead>
+        <tbody id="orderTableBody">
+            <tr>
+                <td colspan="5">Sipariş bilgisi yükleniyor...</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        $(document).ready(function () {
+            function loadOrders() {
+                $.ajax({
+                    url: '@Url.Action("CheckOrderStatus", "Customer")',
+                    type: 'GET',
+                    success: function (response) {
+                        if (response.success) {
+                            var orders = response.orders;
+                            var tableBody = $('#orderTableBody');
+                            tableBody.empty(); // Önce tabloyu temizle
+
+                            orders.forEach(function (order) {
+                                var statusClass = "";
+                                if (order.orderStatus === "Pending") {
+                                    statusClass = "status-pending";
+                                } else if (order.orderStatus === "Sipariş Verildi") {
+                                    statusClass = "status-completed";
+                                } else if (order.orderStatus === "Stok Yetersiz") {
+                                    statusClass = "status-out-of-stock";
+                                } else if (order.orderStatus === "Onaylandı") {
+                                    statusClass = "status-approved";
+                                }
+
+                                tableBody.append(`
+                                            <tr>
+                                                <td>${order.orderId}</td>
+                                                <td>${order.productId}</td>
+                                                <td>${order.quantity}</td>
+                                                <td>${new Date(order.orderDate).toLocaleString('tr-TR')}</td>
+                                                <td class="${statusClass}">${order.orderStatus}</td>
+                                            </tr>
+                                        `);
+                            });
+                        } else {
+                            $('#orderTableBody').html(`<tr><td colspan="5">${response.message}</td></tr>`);
+                        }
+                    },
+                    error: function () {
+                        $('#orderTableBody').html('<tr><td colspan="5">Sipariş durumu alınırken bir hata oluştu.</td></tr>');
+                    }
+                });
+            }
+
+            // Sayfa yüklendiğinde siparişleri getir
+            loadOrders();
+
+            // Belirli aralıklarla sipariş durumu güncelle (örnek: her 10 saniye)
+            setInterval(loadOrders, 10000);
+        });
+    </script>
+
+</body>
+</html>

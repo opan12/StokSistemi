@@ -1,0 +1,81 @@
+﻿@{
+    ViewData["Title"] = "Sipariş Verme";
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sipariş Durumu</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .card {
+            margin-bottom: 20px;
+        }
+
+        .critical-stock {
+            background-color: #f8d7da; /* Kritik stok durumu için kırmızı */
+        }
+
+        .normal-stock {
+            background-color: #d4edda; /* Normal stok durumu için yeşil */
+        }
+
+        #orderStatus {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>@ViewData["Title"]</h2>
+
+    <div>
+        <h3>Ürünler</h3>
+        <form asp-action="PlaceOrder" method="post" id="orderForm">
+            <div class="row">
+                @for (int index = 0; index < Model.Products.Count; index++)
+                {
+                    var product = Model.Products[index];
+                    <div class="col-md-4 mb-3 @((product.Stock <= 5) ? "critical-stock" : "normal-stock")">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">@product.ProductName</h5>
+                                <p class="card-text">Fiyat: @product.Price:C</p>
+                                <p class="card-text">Stok: @product.Stock</p>
+                                <div class="form-group">
+                                    <label for="quantity_@product.ProductId">Miktar:</label>
+                                    <input type="number" class="form-control" name="Orders[@index].Quantity" id="quantity_@product.ProductId" min="0" max="5" value="0" />
+                                    <input type="hidden" name="Orders[@index].ProductId" value="@product.ProductId" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <button type="submit" class="btn btn-primary">Sipariş Ver</button>
+        </form>
+    </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success">@TempData["Message"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+</body>
+</html>

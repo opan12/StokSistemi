@@ -1,0 +1,153 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Siparişlerim - Bekleme Süresi ve Öncelik Skoru</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .status-pending {
+            color: orange;
+        }
+
+        .status-approved {
+            color: blue;
+        }
+
+        .status-completed {
+            color: green;
+        }
+
+        .status-out-of-stock {
+            color: red;
+        }
+
+        /* Animasyon */
+        .animated-row {
+            transition: all 0.5s ease-in-out;
+        }
+
+        .slide-up {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Hoş Geldiniz!</h1>
+    <p>Siparişleriniz aşağıda listelenmektedir:</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Sipariş ID</th>
+                <th>Ürün ID</th>
+                <th>Adet</th>
+                <th>Sipariş Tarihi</th>
+                <th>Durum</th>
+                <th>Bekleme Süresi</th>
+                <th>Öncelik Skoru</th>
+            </tr>
+        </thead>
+        <tbody id="orderTableBody">
+            <tr>
+                <td colspan="7">Sipariş bilgisi yükleniyor...</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        $(document).ready(function () {
+            function loadOrders() {
+                $.ajax({
+                    url: '@Url.Action("CheckOrderStatus", "Customer")',
+                    type: 'GET',
+                    success: function (response) {
+                        if (response.success) {
+                            var orders = response.orders;
+                            var tableBody = $('#orderTableBody');
+                            tableBody.empty(); // Önce tabloyu temizle
+
+                            orders.forEach(function (order) {
+                                var statusClass = "";
+                                if (order.orderStatus === "Pending") {
+                                    statusClass = "status-pending";
+                                } else if (order.orderStatus === "Sipariş Verildi") {
+                                    statusClass = "status-completed";
+                                } else if (order.orderStatus === "Stok Yetersiz") {
+                                    statusClass = "status-out-of-stock";
+                                }
+
+                                var waitingTimeInSeconds = calculateWaitingTime(new Date(order.orderDate));
+                                var formattedWaitingTime = formatTime(waitingTimeInSeconds);
+
+                                tableBody.append(`
+                                    <tr>
+                                        <td>${order.orderId}</td>
+                                        <td>${order.productId}</td>
+                                        <td>${order.quantity}</td>
+                                        <td>${new Date(order.orderDate).toLocaleString('tr-TR')}</td>
+                                        <td class="${statusClass}">${order.orderStatus}</td>
+                                        <td>${formattedWaitingTime}</td>
+                                    </tr>
+                                `);
+                            });
+                        } else {
+                            $('#orderTableBody').html(`<tr><td colspan="6">${response.message}</td></tr>`);
+                        }
+                    },
+                    error: function () {
+                        $('#orderTableBody').html('<tr><td colspan="6">Sipariş durumu alınırken bir hata oluştu.</td></tr>');
+                    }
+                });
+            }
+
+            function calculateWaitingTime(orderDate) {
+                var currentTime = new Date();
+                var diffInSeconds = (currentTime - orderDate) / 1000; // milisaniye farkını saniyeye çevir
+                return diffInSeconds;
+            }
+
+            function formatTime(seconds) {
+                if (isNaN(seconds)) return "NaN gün, NaN saat, NaN dakika, NaN saniye"; // NaN kontrolü
+                var days = Math.floor(seconds / (60 * 60 * 24));
+                var hours = Math.floor((seconds % (60 * 60 * 24)) / (60 * 60));
+                var minutes = Math.floor((seconds % (60 * 60)) / 60);
+                var secs = Math.floor(seconds % 60);
+                return `${days} gün, ${hours} saat, ${minutes} dakika, ${secs} saniye`;
+            }
+
+            // Sayfa yüklendiğinde siparişleri getir
+            loadOrders();
+
+            // Belirli aralıklarla sipariş durumu güncelle (örnek: her 10 saniye)
+            setInterval(loadOrders, 10000);
+        });
+
+       
+    </script>
+
+</body>
+</html>
