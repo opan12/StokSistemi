@@ -57,6 +57,15 @@ namespace StokSistemi.Controllers
 
                 if (customer == null)
                 {
+
+                    AddLog(
+                        customerId: customerId,
+                        logType: "PlaceOrder",
+                        customerType: "N/A",
+                        productName: "N/A",
+                        quantity: 0,
+                        resultMessage: "Müşteri bulunamadı."
+                    );
                     return Json(new { success = false, message = "Müşteri bulunamadı." });
                 }
 
@@ -72,11 +81,29 @@ namespace StokSistemi.Controllers
                     var product = _adminService.GetProduct(order.ProductId);
                     if (product == null)
                     {
+
+                        AddLog(
+                            customerId: customerId,
+                            logType: "PlaceOrder",
+                            customerType: customer.CustomerType,
+                            productName: order.ProductId.ToString(),
+                            quantity: order.Quantity,
+                            resultMessage: $"Ürün ID {order.ProductId} bulunamadı."
+                        );
                         return Json(new { success = false, message = $"Ürün ID {order.ProductId} bulunamadı." });
                     }
 
                     if (product.Stock < order.Quantity)
                     {
+                        AddLog(
+                            customerId: customerId,
+                            logType: "PlaceOrder",
+                            customerType: customer.CustomerType,
+                            productName: product.ProductName,
+                            quantity: order.Quantity,
+                            resultMessage: $"Yetersiz stok: {product.Stock} adet mevcut."
+                        );
+
                         return Json(new { success = false, message = $"Yetersiz stok: {product.Stock} adet mevcut." });
                     }
                     var totalOrderedQuantity = _context.Orders
@@ -85,6 +112,16 @@ namespace StokSistemi.Controllers
 
                     if (totalOrderedQuantity + order.Quantity > 5)
                     {
+                        AddLog(
+                            customerId: customerId,
+                            logType: "PlaceOrder",
+                            customerType: customer.CustomerType,
+                            productName: product.ProductName,
+                            quantity: order.Quantity,
+                            resultMessage: $"Ürün ID {order.ProductId} için toplamda en fazla 5 adet sipariş verebilirsiniz. Daha önce {totalOrderedQuantity} adet sipariş verdiniz."
+                        );
+
+
                         return Json(new { success = false, message = $"Ürün ID {order.ProductId} için toplamda en fazla 5 adet sipariş verebilirsiniz. Daha önce {totalOrderedQuantity} adet sipariş verdiniz." });
                     }
                     var newOrder = CreateOrder(customerId, order, product);
@@ -93,7 +130,14 @@ namespace StokSistemi.Controllers
                     _context.Orders.Add(newOrder);
 
                     EnqueueOrderToDb(newOrder); // Siparişi kuyruğa ekle ve öncelik skorunu hesapla
-
+                    AddLog(
+                        customerId: customerId,
+                        logType: "PlaceOrder",
+                        customerType: customer.CustomerType,
+                        productName: product.ProductName,
+                        quantity: order.Quantity,
+                        resultMessage: $"Sipariş başarıyla verildi: Ürün ID {order.ProductId}, Miktar: {order.Quantity}"
+                    );
 
                 }
 
@@ -102,16 +146,43 @@ namespace StokSistemi.Controllers
                 if (customer.TotalSpent >= 2000 && customer.CustomerType != "Premium")
                 {
                     customer.CustomerType = "Premium";
+                    AddLog(
+                        customerId: customerId,
+                        logType: "PlaceOrder",
+                        customerType: "N/A",
+                        productName: "N/A",
+                        quantity: 0,
+                        resultMessage: "Müşteri türü Premium olarak güncellendi."
+                    );
+
                 }
 
           
 
                 _context.SaveChanges();
 
+                AddLog(
+                    customerId: customerId,
+                    logType: "PlaceOrder",
+                    customerType: customer.CustomerType,
+                    productName: "N/A",
+                    quantity: orders.Count,
+                    resultMessage: "Sipariş(ler) başarıyla verildi."
+                );
+
                 return Json(new { success = true, message = "Sipariş(ler) başarıyla verildi." });
             }
             catch (Exception ex)
             {
+
+                AddLog(
+                    customerId: "N/A",
+                    logType: "PlaceOrder",
+                    customerType: "N/A",
+                    productName: "N/A",
+                    quantity: 0,
+                    resultMessage: $"Bir hata oluştu: {ex.Message}"
+                );
                 return Json(new { success = false, message = $"Bir hata oluştu: {ex.Message}" });
             }
             finally
@@ -149,8 +220,8 @@ namespace StokSistemi.Controllers
 
             // Öncelik skorunu müşteri tipine ve bekleme süresine göre hesapla
             double priorityScore = customer.CustomerType == "Premium"
-                ? 15 + (waitingTimeInSeconds * 0.5) // Premium müşteriler için
-                : 10 + (waitingTimeInSeconds * 0.5); // Standart müşteriler için
+                ? 15 // Premium müşteriler için
+                : 10; // Standart müşteriler için
 
             // Veritabanındaki PriorityScore değerini güncelle
             var orderQueueFromDb = _context.Orders.FirstOrDefault(o => o.OrderId == order.OrderId);
@@ -259,6 +330,24 @@ namespace StokSistemi.Controllers
 
             return View(user); // Kullanıcı bilgilerini göster
         }
+
+        private void AddLog(string customerId, string logType, string customerType, string productName, int quantity, string resultMessage)
+        {
+            var log = new Log
+            {
+                CustomerID = customerId ?? "Unknown",
+                LogType = logType,
+                CustomerType = customerType ?? "Unknown",
+                ProductName = productName ?? "Unknown",
+                Quantity = quantity,
+                TransactionTime = DateTime.Now,
+                ResultMessage = resultMessage
+            };
+
+            _context.Logs.Add(log);
+            _context.SaveChanges();
+        }
+
     }
 }
  

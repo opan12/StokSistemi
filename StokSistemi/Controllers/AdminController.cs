@@ -118,18 +118,46 @@ namespace StokSistemi.Controllers
             {
                 lock (_mutex)
                 {
+                    var customer = _context.Customers.Find(order.CustomerId);
+                    var product = _context.Products.Find(order.ProductId);
+
+
+                    // Log eklemeden önce müşteri ve ürün kontrolü
+                    if (customer == null || product == null)
+                    {
+                        AddLog(
+                            customerId: order.CustomerId,
+                            logType: "OrderStatus",
+                            customerType: customer?.CustomerType ?? "Unknown",
+                            productName: product?.ProductName ?? "Unknown",
+                            quantity: order.Quantity,
+                            resultMessage: "Hata: Müşteri veya ürün bulunamadı."
+                        );
+
+                        // Siparişi atla, sonraki siparişe geç
+                        continue;
+                    }
+
+                    AddLog(
+                        customerId: order.CustomerId,
+                        logType: "OrderStatus",
+                        customerType: customer.CustomerType,
+                        productName: product.ProductName,
+                        quantity: order.Quantity,
+                        resultMessage: "Sipariş işleniyor."
+                    );
+
                     order.OrderStatus = "İşleniyor";
                     _context.SaveChanges();
+
+                    // Siparişi işleme
                     ProcessOrder(order);
-
-
-
                 }
-
             }
 
-            return Json(new { success = true, message = $" sipariş başarıyla onaylandı." });
+            return Json(new { success = true, message = "Tüm siparişler başarıyla onaylandı." });
         }
+
 
         private void ProcessOrder(Order orderQueue)
         {
@@ -142,6 +170,16 @@ namespace StokSistemi.Controllers
                 {
                     orderQueue.OrderStatus = "Hata: Müşteri veya ürün bulunamadı.";
                     _context.SaveChanges();
+
+                    AddLog(
+                        customerId: orderQueue.CustomerId,
+                        logType: "ProcessOrder",
+                        customerType: customer?.CustomerType ?? "Unknown",
+                        productName: product?.ProductName ?? "Unknown",
+                        quantity: orderQueue.Quantity,
+                        resultMessage: "Müşteri veya ürün bulunamadı."
+                    );
+
                     return;
                 }
 
@@ -164,15 +202,48 @@ namespace StokSistemi.Controllers
                         }
 
                         _adminService.UpdateProduct(product); // Ürünü güncelle
+
+
+
+                        AddLog(
+                            customerId: orderQueue.CustomerId,
+                            logType: "ProcessOrder",
+                            customerType: customer.CustomerType,
+                            productName: product.ProductName,
+                            quantity: orderQueue.Quantity,
+                            resultMessage: "Tamamlandı."
+                        );
+
                     }
                     else
                     {
                         orderQueue.OrderStatus = "Stok Yetersiz";
+                        AddLog(
+                            customerId: orderQueue.CustomerId,
+                            logType: "ProcessOrder",
+                            customerType: customer.CustomerType,
+                            productName: product.ProductName,
+                            quantity: orderQueue.Quantity,
+                            resultMessage: "Stok yetersiz."
+                        );
+
                     }
 
                     if (customer.Budget < product.Price * orderQueue.Quantity)
                     {
                         orderQueue.OrderStatus = "Eksik Bütçe";
+
+
+
+                        AddLog(
+                            customerId: orderQueue.CustomerId,
+                            logType: "ProcessOrder",
+                            customerType: customer.CustomerType,
+                            productName: product.ProductName,
+                            quantity: orderQueue.Quantity,
+                            resultMessage: "Müşteri bütçesi yetersiz."
+                        );
+
                     }
 
                     orderQueue.IsProcessed = true;
@@ -237,5 +308,24 @@ namespace StokSistemi.Controllers
                 _mutex.ReleaseMutex(); // Mutex'i serbest bırak
             }
         }
+
+
+        private void AddLog(string customerId, string logType, string customerType, string productName, int quantity, string resultMessage)
+        {
+            var log = new Log
+            {
+                CustomerID = customerId ?? "Unknown",
+                LogType = logType,
+                CustomerType = customerType ?? "Unknown",
+                ProductName = productName ?? "Unknown",
+                Quantity = quantity,
+                TransactionTime = DateTime.Now,
+                ResultMessage = resultMessage
+            };
+
+            _context.Logs.Add(log);
+            _context.SaveChanges();
+        }
+
     }
 }

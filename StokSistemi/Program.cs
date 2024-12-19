@@ -70,6 +70,13 @@ app.MapControllerRoute(
     pattern: "log/{action=Index}/{id?}",
     defaults: new { controller = "Log" });
 
+// Skor için özel rota
+app.MapControllerRoute(
+    name: "skor",
+    pattern: "Admin/Skor",
+    defaults: new { controller = "Skor", action = "Index" });
+
+
 // Varsayýlan rota
 app.MapControllerRoute(
     name: "default",

@@ -1,0 +1,31 @@
+﻿@model IEnumerable<dynamic>
+
+@{
+    ViewData["Title"] = "Skor Sayfası";
+}
+
+<h2>Skor Sayfası</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>PriorityScore</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var order in Model)
+        {
+            <tr>
+                <td>@order.Username</td>
+                <td>@order.PriorityScore</td>
+            </tr>
+        }
+    </tbody>
+</table>
+<!-- Dinamik Yenileme Kodu -->
+<script>
+    setInterval(function () {
+        location.reload();
+    }, 10); // 10 saniyede bir sayfayı yeniler
+</script>
