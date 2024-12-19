@@ -1,18 +1,88 @@
-﻿@{
-    ViewData["Title"] = "Bildirimler";
-}
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css">
+    <style>
+        .btn-icon {
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+        }
 
-<h2>@ViewData["Title"]</h2>
+            .btn-icon i {
+                margin-right: 8px;
+                color: #007bff;
+            }
 
-<div class="d-flex justify-content-between align-items-center p-3 shadow-sm bg-light">
-    <h1 class="display-6">Hoşgeldin, @User.Identity.Name!</h1>
-    <div>
-        <a href="/Customer/Index" class="btn btn-outline-primary me-2">Etkinliklere Git</a>
-        <a href="/Customer/CheckOrder" class="btn btn-outline-primary me-2">Siparişler</a>
+        .navbar {
+            margin-bottom: 20px;
+        }
 
-        <a href="/Customer/Check" class="btn btn-outline-primary me-2">Siparişler süre</a>
+        .navbar-brand {
+            font-weight: bold;
+            color: #007bff;
+        }
 
+        .nav-link {
+            color: #007bff;
+            font-weight: 500;
+        }
+
+            .nav-link:hover {
+                color: #0056b3;
+                text-decoration: none;
+            }
+
+        .navbar-toggler {
+            border-color: transparent;
+        }
+
+        .navbar-toggler-icon {
+            background-color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar Başlangıcı -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="#">MySite</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Customer/Index">
+                            <i class="fas fa-plus-circle"></i> Sipariş Oluştur
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Customer/CheckOrder">
+                            <i class="fas fa-list-ul"></i> Siparişler
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Customer/Check">
+                            <i class="fas fa-clock"></i> Sipariş Süre
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- Navbar Bitişi -->
+
+    <div class="container mt-4">
+        <h1 class="display-6">Hoşgeldin, @User.Identity.Name!</h1>
+
+        <!-- İçerik burada olacak -->
     </div>
-</div>
 
-
+</body>
+</html>

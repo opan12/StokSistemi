@@ -1,59 +1,92 @@
 ﻿@model UserLoginModel
 
-<div class="container d-flex justify-content-center align-items-center min-vh-100">
-    <div class="card shadow p-4" style="width: 80%; max-width: 400px;">
-        <h3 class="text-center mb-4">Giriş Yap</h3>
+<div id="backgroundDiv" class="d-flex justify-content-center align-items-center min-vh-100" 
+     style="background: linear-gradient(120deg, #8e44ad, #f39c12, #3498db); background-size: 300% 300%; animation: gradientAnimation 5s ease infinite;">
+    <div class="card shadow-lg p-5" 
+         style="width: 90%; max-width: 400px; background: rgba(255, 255, 255, 0.9); border-radius: 20px;">
+        <!-- Başlık -->
+        <div class="text-center mb-4">
+            <i class="bi bi-person-circle" style="font-size: 4rem; color: #8e44ad;"></i>
+            <h3 class="mt-3" style="color: #2c3e50;">Giriş Yap</h3>
+        </div>
 
         <!-- Uyarı Mesajı Alanı -->
-        <div id="alertMessage" class="alert alert-danger" role="alert" style="display: none;"></div>
+        <div id="alertMessage" class="alert alert-danger text-center mb-3" role="alert" style="display: none; border-radius: 15px;"></div>
 
         <form id="loginForm" method="post" onsubmit="return validateForm()">
-            <!-- Username Field -->
-            <div class="form-group mb-3">
-                <label asp-for="Username" class="form-label">Kullanıcı Adı</label>
-                <input asp-for="Username" class="form-control" placeholder="Kullanıcı Adı" />
+            <!-- Kullanıcı Adı -->
+            <div class="form-group mb-4">
+                <label asp-for="Username" class="form-label" style="color: #2c3e50;">Kullanıcı Adı</label>
+                <div class="input-group">
+                    <span class="input-group-text" style="background: #8e44ad; color: white; border-radius: 10px 0 0 10px;">
+                        <i class="bi bi-person"></i>
+                    </span>
+                    <input asp-for="Username" class="form-control" placeholder="Kullanıcı Adı" style="border-radius: 0 10px 10px 0;" />
+                </div>
                 <span asp-validation-for="Username" class="text-danger"></span>
             </div>
 
-            <!-- Password Field -->
+            <!-- Şifre -->
             <div class="form-group mb-4">
-                <label asp-for="Şifre" class="form-label">Şifre</label>
-                <input asp-for="Şifre" type="password" class="form-control" placeholder="Şifre" />
+                <label asp-for="Şifre" class="form-label" style="color: #2c3e50;">Şifre</label>
+                <div class="input-group">
+                    <span class="input-group-text" style="background: #8e44ad; color: white; border-radius: 10px 0 0 10px;">
+                        <i class="bi bi-lock"></i>
+                    </span>
+                    <input asp-for="Şifre" id="passwordInput" type="password" class="form-control" placeholder="Şifre" style="border-radius: 0 10px 10px 0;" oninput="updateBackgroundColor()" />
+                </div>
+                <div id="passwordStrength" class="mt-1"></div>
                 <span asp-validation-for="Şifre" class="text-danger"></span>
             </div>
 
-            <!-- Buttons -->
+            <!-- Butonlar -->
             <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary">Giriş Yap</button>
-                <a href="/User/Register" class="btn btn-secondary">Kayıt Ol</a>
-                <a href="@Url.Action("ForgotPassword", "Account")" class="button password-update-button">Şifre Yenile</a>
-
+                <button type="submit" class="btn btn-primary btn-lg" 
+                        style="background: #8e44ad; border: none; border-radius: 15px;">Giriş Yap</button>
             </div>
         </form>
     </div>
 </div>
 
+<head>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+
+
 <script>
     function validateForm() {
-        // Uyarı mesajı alanını sıfırla
         const alertMessage = document.getElementById("alertMessage");
         alertMessage.style.display = "none";
         alertMessage.innerHTML = "";
 
-        // Kullanıcı adı ve şifre alanlarını al
         const username = document.querySelector('input[name="Username"]').value;
         const password = document.querySelector('input[name="Şifre"]').value;
 
-        // Basit doğrulama: Kullanıcı adı ve şifre boş olamaz
         if (!username || !password) {
             alertMessage.innerHTML = "Kullanıcı adı ve şifre boş olamaz.";
             alertMessage.style.display = "block";
-            return false; // Formu gönderme
+            return false;
         }
 
-        // Diğer özel doğrulamalar burada yapılabilir
-
-        // Eğer her şey uygunsa formun gönderilmesine izin ver
         return true;
+    }
+
+    function updateBackgroundColor() {
+        const passwordInput = document.getElementById("passwordInput");
+        const backgroundDiv = document.getElementById("backgroundDiv");
+        const strengthIndicator = document.getElementById("passwordStrength");
+        const password = passwordInput.value;
+
+        let strength = "weak";
+        if (password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password)) {
+            strength = "strong";
+        } else if (password.length >= 6) {
+            strength = "medium";
+        }
+
+     
+        passwordInput.className = `form-control ${strength}`;
+        strengthIndicator.innerHTML = `Güç: ${strength === "weak" ? "Zayıf" : strength === "medium" ? "Orta" : "Güçlü"}`;
+        strengthIndicator.style.color = strength === "strong" ? "green" : strength === "medium" ? "orange" : "red";
     }
 </script>
