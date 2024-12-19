@@ -34,22 +34,33 @@ namespace StokSistemi.Controllers
 
         public IActionResult Index()
         {
-            if (SystemState.IsAdminProcessing)
+            if (!_mutex.WaitOne(0) || SystemState.IsAdminProcessing) // Mutex alınamıyorsa veya admin işlemi devam ediyorsa
             {
                 return Json(new { success = false, message = "Admin işlem yapıyor. Lütfen daha sonra tekrar deneyin." });
-            }
-            var model = new CustomerViewModel
-            {
-               // Customers = _customerQueue.GetAllCustomers(), // Tüm müşterileri al
-                Products = _adminService.GetAllProducts(), // Tüm ürünleri al
-                LogEntries = _logService.GetAllLogs() // Tüm logları al
-            };
 
-            return View(model); // Model ile Index.cshtml'yi döndür
+            }
+
+            try
+            {
+                // Mutex alınmışsa müşteri işlemleri devam eder
+                var model = new CustomerViewModel
+                {
+                    Products = _adminService.GetAllProducts(), // Tüm ürünleri al
+                    LogEntries = _logService.GetAllLogs()      // Tüm logları al
+                };
+
+                return View(model);
+            }
+            finally
+            {
+                // Admin işlemi bitince Mutex serbest bırakılır ve SystemState.IsAdminProcessing false yapılır
+                _mutex.ReleaseMutex();
+                SystemState.IsAdminProcessing = false; // Admin işlemi bittiğinde bayrağı false yap
+            }
         }
         public IActionResult PlaceOrder(List<Order> orders)
         {
-            _mutex.WaitOne();
+            _mutex.WaitOne(); // Mutex kilidi alınıyor
             try
             {
                 var customerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -57,137 +68,63 @@ namespace StokSistemi.Controllers
 
                 if (customer == null)
                 {
-
-                    AddLog(
-                        customerId: customerId,
-                        logType: "PlaceOrder",
-                        customerType: "N/A",
-                        productName: "N/A",
-                        quantity: 0,
-                        resultMessage: "Müşteri bulunamadı."
-                    );
-                    return Json(new { success = false, message = "Müşteri bulunamadı." });
+                    AddLog(customerId, "PlaceOrder", "N/A", "N/A", 0, "Müşteri bulunamadı.");
+                    TempData["ErrorMessage"] = "Müşteri bulunamadı.";
+                    return RedirectToAction("OrderPage"); // İlgili sayfaya yönlendirme
                 }
-
-                decimal totalSpent = 0;
 
                 foreach (var order in orders)
                 {
                     if (order.Quantity <= 0)
-                    {
                         continue;
-                    }
 
                     var product = _adminService.GetProduct(order.ProductId);
                     if (product == null)
                     {
-
-                        AddLog(
-                            customerId: customerId,
-                            logType: "PlaceOrder",
-                            customerType: customer.CustomerType,
-                            productName: order.ProductId.ToString(),
-                            quantity: order.Quantity,
-                            resultMessage: $"Ürün ID {order.ProductId} bulunamadı."
-                        );
-                        return Json(new { success = false, message = $"Ürün ID {order.ProductId} bulunamadı." });
+                        AddLog(customerId, "PlaceOrder", customer.CustomerType, order.ProductId.ToString(), order.Quantity, $"Ürün ID {order.ProductId} bulunamadı.");
+                        TempData["ErrorMessage"] = $"Ürün ID {order.ProductId} bulunamadı.";
+                        return RedirectToAction("Index");
                     }
 
                     if (product.Stock < order.Quantity)
                     {
-                        AddLog(
-                            customerId: customerId,
-                            logType: "PlaceOrder",
-                            customerType: customer.CustomerType,
-                            productName: product.ProductName,
-                            quantity: order.Quantity,
-                            resultMessage: $"Yetersiz stok: {product.Stock} adet mevcut."
-                        );
-
-                        return Json(new { success = false, message = $"Yetersiz stok: {product.Stock} adet mevcut." });
+                        AddLog(customerId, "PlaceOrder", customer.CustomerType, product.ProductName, order.Quantity, $"Yetersiz stok: {product.Stock} adet mevcut.");
+                        TempData["ErrorMessage"] = $"Yetersiz stok: {product.Stock} adet mevcut.";
+                        return RedirectToAction("Index");
                     }
+
                     var totalOrderedQuantity = _context.Orders
-               .Where(o => o.CustomerId == customerId && o.ProductId == order.ProductId)
-               .Sum(o => o.Quantity);
+                        .Where(o => o.CustomerId == customerId && o.ProductId == order.ProductId)
+                        .Sum(o => o.Quantity);
 
                     if (totalOrderedQuantity + order.Quantity > 5)
                     {
-                        AddLog(
-                            customerId: customerId,
-                            logType: "PlaceOrder",
-                            customerType: customer.CustomerType,
-                            productName: product.ProductName,
-                            quantity: order.Quantity,
-                            resultMessage: $"Ürün ID {order.ProductId} için toplamda en fazla 5 adet sipariş verebilirsiniz. Daha önce {totalOrderedQuantity} adet sipariş verdiniz."
-                        );
-
-
-                        return Json(new { success = false, message = $"Ürün ID {order.ProductId} için toplamda en fazla 5 adet sipariş verebilirsiniz. Daha önce {totalOrderedQuantity} adet sipariş verdiniz." });
+                        TempData["ErrorMessage"] = $"Ürün ID {order.ProductId} için toplamda en fazla 5 adet sipariş verebilirsiniz. Daha önce {totalOrderedQuantity} adet sipariş verdiniz.";
+                        return RedirectToAction("Index");
                     }
+
+                    // Siparişi oluştur
                     var newOrder = CreateOrder(customerId, order, product);
-                    newOrder.EnqueueTime = DateTime.Now; // Kuyruğa eklenme zamanı
+                    newOrder.EnqueueTime = DateTime.Now;
 
                     _context.Orders.Add(newOrder);
-
-                    EnqueueOrderToDb(newOrder); // Siparişi kuyruğa ekle ve öncelik skorunu hesapla
-                    AddLog(
-                        customerId: customerId,
-                        logType: "PlaceOrder",
-                        customerType: customer.CustomerType,
-                        productName: product.ProductName,
-                        quantity: order.Quantity,
-                        resultMessage: $"Sipariş başarıyla verildi: Ürün ID {order.ProductId}, Miktar: {order.Quantity}"
-                    );
-
                 }
-
-               // customer.TotalSpent += totalSpent;
-
-                if (customer.TotalSpent >= 2000 && customer.CustomerType != "Premium")
-                {
-                    customer.CustomerType = "Premium";
-                    AddLog(
-                        customerId: customerId,
-                        logType: "PlaceOrder",
-                        customerType: "N/A",
-                        productName: "N/A",
-                        quantity: 0,
-                        resultMessage: "Müşteri türü Premium olarak güncellendi."
-                    );
-
-                }
-
-          
 
                 _context.SaveChanges();
 
-                AddLog(
-                    customerId: customerId,
-                    logType: "PlaceOrder",
-                    customerType: customer.CustomerType,
-                    productName: "N/A",
-                    quantity: orders.Count,
-                    resultMessage: "Sipariş(ler) başarıyla verildi."
-                );
-
-                return Json(new { success = true, message = "Sipariş(ler) başarıyla verildi." });
+                AddLog(customerId, "PlaceOrder", customer.CustomerType, "N/A", orders.Count, "Sipariş(ler) başarıyla verildi.");
+                TempData["SuccessMessage"] = "Sipariş(ler) başarıyla verildi.";
+                return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-
-                AddLog(
-                    customerId: "N/A",
-                    logType: "PlaceOrder",
-                    customerType: "N/A",
-                    productName: "N/A",
-                    quantity: 0,
-                    resultMessage: $"Bir hata oluştu: {ex.Message}"
-                );
-                return Json(new { success = false, message = $"Bir hata oluştu: {ex.Message}" });
+                AddLog("N/A", "PlaceOrder", "N/A", "N/A", 0, $"Bir hata oluştu: {ex.Message}");
+                TempData["ErrorMessage"] = $"Bir hata oluştu: {ex.Message}";
+                return RedirectToAction("Index");
             }
             finally
             {
-                _mutex.ReleaseMutex();
+                _mutex.ReleaseMutex(); // Mutex kilidi serbest bırakılıyor
             }
         }
 
@@ -220,8 +157,8 @@ namespace StokSistemi.Controllers
 
             // Öncelik skorunu müşteri tipine ve bekleme süresine göre hesapla
             double priorityScore = customer.CustomerType == "Premium"
-                ? 15 // Premium müşteriler için
-                : 10; // Standart müşteriler için
+               ? 15 + (waitingTimeInSeconds * 0.5)
+                            : 10 + (waitingTimeInSeconds * 0.5);
 
             // Veritabanındaki PriorityScore değerini güncelle
             var orderQueueFromDb = _context.Orders.FirstOrDefault(o => o.OrderId == order.OrderId);

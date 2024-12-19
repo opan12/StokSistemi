@@ -27,12 +27,14 @@ namespace StokSistemi.Controllers
             return View(products);
         }
         public static class SystemState
-{
-    public static bool IsAdminProcessing { get; set; } = false;
-}
+        {
+            public static bool IsAdminProcessing { get; set; } = false;
+        }
 
         public IActionResult PendingOrders()
         {
+            ViewData["Message"] = TempData["Message"] as string; // TempData'dan mesajı al
+
             var orders = _context.Orders.Where(o => o.OrderStatus == "Pending").ToList();
             return View(orders); // orders listesini model olarak döndürün
         }
@@ -111,7 +113,8 @@ namespace StokSistemi.Controllers
 
             if (!pendingOrders.Any())
             {
-                return Json(new { success = false, message = "Onay bekleyen sipariş bulunamadı." });
+                TempData["Message"] = "Onay bekleyen sipariş bulunamadı.";
+                return RedirectToAction("PendingOrders");
             }
 
             foreach (var order in pendingOrders)
@@ -155,11 +158,11 @@ namespace StokSistemi.Controllers
                 }
             }
 
-            return Json(new { success = true, message = "Tüm siparişler başarıyla onaylandı." });
+            TempData["Message"] = "Siparişler başarıyla onaylandı.";
+            return RedirectToAction("PendingOrders"); // İşlem tamamlandıktan sonra onaylanan siparişlerin listelendiği sayfaya yönlendir        }
+
         }
-
-
-        private void ProcessOrder(Order orderQueue)
+            private void ProcessOrder(Order orderQueue)
         {
             lock (_context.Orders) // Kilitleme işlemi
             {
@@ -256,11 +259,11 @@ namespace StokSistemi.Controllers
             }
         }
 
-            
 
 
 
-            public IActionResult CheckAllOrders()
+
+        public IActionResult CheckAllOrders()
         {
             var orders = _context.Orders
                 .Select(o => new
@@ -329,3 +332,4 @@ namespace StokSistemi.Controllers
 
     }
 }
+

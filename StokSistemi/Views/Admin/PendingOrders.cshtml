@@ -2,6 +2,13 @@
 
 <h3>Onay Bekleyen Siparişler</h3>
 
+@if (ViewData["Message"] != null)
+{
+    <div class="alert alert-info">
+        @ViewData["Message"]
+    </div>
+}
+
 <form asp-action="ApproveAllOrders" method="post">
     <button type="submit" class="btn btn-primary mb-3">Tümünü Onayla</button>
 </form>
@@ -16,7 +23,6 @@
             <th>Toplam Fiyat</th>
             <th>Sipariş Tarihi</th>
             <th>Durum</th>
-            <th>Onayla</th>
         </tr>
     </thead>
     <tbody>
@@ -30,10 +36,54 @@
                 <td>@order.TotalPrice.ToString("C")</td>
                 <td>@order.OrderDate.ToString("g")</td>
                 <td>@order.OrderStatus</td>
-                <td>
-                    
-                </td>
             </tr>
         }
     </tbody>
 </table>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        function showSuccessMessage(message) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Başarılı!',
+                text: message,
+                confirmButtonText: 'Tamam'
+            }).then(() => {
+                window.location.href = '/Admin/PendingOrders'; // Onaylanan siparişlerin listelendiği sayfaya yönlendir
+            });
+        }
+
+        function showErrorMessage(message) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Hata!',
+                text: message,
+                confirmButtonText: 'Tamam'
+            });
+        }
+
+        $(document).ready(function () {
+            $("form[asp-action='ApproveAllOrders']").submit(function (e) {
+                e.preventDefault(); // Form submission'unu engeller
+
+                $.ajax({
+                    url: $(this).attr('action'), // Form action'ını alır
+                    type: 'POST',
+                    success: function (response) {
+                        if (response.success) {
+                            showSuccessMessage(response.message); // Başarılı işlemin uyarısını göster
+                        } else {
+                            showErrorMessage(response.message); // Hata mesajı göster
+                        }
+                    },
+                    error: function () {
+                        showErrorMessage('An error occurred while processing the request.');
+                    }
+                });
+            });
+        });
+    </script>
+}
