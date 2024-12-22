@@ -15,27 +15,32 @@ namespace StokSistemi.Controllers
 
         public IActionResult Index()
         {
-            // Orders ve Users tablolarını join ederek Username'i al
+            // Orders ve Users tablolarını join ederek WaitingTime > 0 olan kullanıcıları filtrele
             var uniqueOrders = _context.Orders
                 .Join(
-                    _context.Users,                // Join edilecek tablo
-                    order => order.CustomerId,     // Orders.CustomerId ile
-                    user => user.Id,               // Users.Id eşleştir
+                    _context.Users,
+                    order => order.CustomerId,
+                    user => user.Id,
                     (order, user) => new
                     {
-                        Username = user.UserName,  // Kullanıcı adı
-                        PriorityScore = order.PriorityScore
+                        Username = user.UserName,
+                        OrderId = order.OrderId,
+                        PriorityScore = order.PriorityScore,
+                        WaitingTime = user.WaitingTime // Kullanıcının WaitingTime değeri
                     })
-                .GroupBy(o => o.Username)         // Username'e göre gruplandır
-                .Select(group => new
-                {
-                    Username = group.Key,
-                    PriorityScore = group.Max(o => o.PriorityScore) // En yüksek PriorityScore
-                })
+                .AsEnumerable() // Veritabanı sorgusunu belleğe al
+                .Where(o => o.WaitingTime.TotalSeconds > 0) // Bellekte TimeSpan özelliğini filtrele
+                .GroupBy(o => o.Username) // Username'e göre gruplandır
+                .Select(group => group
+                    .OrderByDescending(o => o.OrderId) // OrderId'ye göre azalan sırayla sırala
+                    .First()) // İlk öğeyi al (OrderId'si en yüksek olan)
                 .OrderByDescending(o => o.PriorityScore) // Öncelik skoruna göre sırala
                 .ToList();
 
             return View(uniqueOrders);
         }
+
+
+
     }
 }

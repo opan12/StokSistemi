@@ -29,6 +29,12 @@ namespace StokSistemi.Services
 
                     foreach (var orderQueue in orderQueues)
                     {
+                        // Tamamlanmış siparişler için bekleme süresi güncellenmez
+                        if (orderQueue.OrderStatus == "Tamamlandı")
+                        {
+                            continue;
+                        }
+
                         if (orderQueue.EnqueueTime == default(DateTime))
                         {
                             Console.WriteLine($"Invalid EnqueueTime for OrderQueueId {orderQueue.OrderId}");
@@ -54,10 +60,8 @@ namespace StokSistemi.Services
                     dbContext.SaveChanges();
                 }
 
-                await Task.Delay(5000, stoppingToken);
+                await Task.Delay(50, stoppingToken);
             }
         }
-
-
     }
 }

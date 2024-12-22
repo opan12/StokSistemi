@@ -150,6 +150,7 @@ namespace StokSistemi.Controllers
                         resultMessage: "Sipariş işleniyor."
                     );
 
+
                     order.OrderStatus = "İşleniyor";
                     _context.SaveChanges();
 
@@ -250,6 +251,9 @@ namespace StokSistemi.Controllers
                     }
 
                     orderQueue.IsProcessed = true;
+
+                    // Bekleme süresi sıfırlama
+                    customer.WaitingTime = TimeSpan.Zero;
                     _context.SaveChanges();
                 }
                 finally

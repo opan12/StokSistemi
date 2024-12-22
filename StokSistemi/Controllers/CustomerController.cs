@@ -130,46 +130,10 @@ namespace StokSistemi.Controllers
 
         // Sipariş kuyruğuna siparişi ekleyen metot
 
-        public void EnqueueOrderToDb(Order order)
-        {
-            // Öncelik skorunu hesapla ve ata
-            order.PriorityScore = CalculatePriorityScore(order);
 
-            _context.Orders.Add(order); // Veritabanına ekle
-            _context.SaveChanges(); // Değişiklikleri kaydet
-        }
 
         // Öncelik skoru hesaplama
-        public double CalculatePriorityScore(Order order)
-        {
-            // Veritabanından müşteri bilgilerini al
-            var customer = _context.Customers.FirstOrDefault(c => c.Id == order.CustomerId);
 
-            if (customer == null)
-            {
-                throw new Exception("Customer not found."); // Eğer müşteri bulunamazsa hata fırlat
-            }
-
-            // Bekleme süresini saniye cinsinden hesapla
-            TimeSpan timeSpan = DateTime.Now - order.EnqueueTime;
-            double waitingTimeInSeconds = timeSpan.TotalSeconds;
-
-
-            // Öncelik skorunu müşteri tipine ve bekleme süresine göre hesapla
-            double priorityScore = customer.CustomerType == "Premium"
-               ? 15 + (waitingTimeInSeconds * 0.5)
-                            : 10 + (waitingTimeInSeconds * 0.5);
-
-            // Veritabanındaki PriorityScore değerini güncelle
-            var orderQueueFromDb = _context.Orders.FirstOrDefault(o => o.OrderId == order.OrderId);
-            if (orderQueueFromDb != null)
-            {
-                orderQueueFromDb.PriorityScore = priorityScore;
-                _context.SaveChanges(); // Güncellemeyi veritabanına kaydet
-            }
-
-            return priorityScore;
-        }
 
 
 

@@ -4,28 +4,56 @@
     ViewData["Title"] = "Skor Sayfası";
 }
 
-<h2>Skor Sayfası</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <!-- Page Title -->
+        <div class="text-center mb-4">
+            <h1 class="display-6 text-primary">
+                <i class="fas fa-trophy"></i> Skor Sayfası
+            </h1>
+            <p class="text-muted">Kullanıcıların öncelik skorları burada listelenmektedir.</p>
+        </div>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Username</th>
-            <th>PriorityScore</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var order in Model)
-        {
-            <tr>
-                <td>@order.Username</td>
-                <td>@order.PriorityScore</td>
-            </tr>
-        }
-    </tbody>
-</table>
-<!-- Dinamik Yenileme Kodu -->
-<script>
-    setInterval(function () {
-        location.reload();
-    }, 10); // 10 saniyede bir sayfayı yeniler
-</script>
+        <!-- Table Section -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <table class="table table-striped table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th><i class="fas fa-user"></i> Kullanıcı Adı</th>
+                            <th><i class="fas fa-star"></i> Öncelik Skoru</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
+                            <tr>
+                                <td>@order.Username</td>
+                                <td>@order.PriorityScore</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dinamik Yenileme Kodu -->
+    <script>
+        setInterval(function () {
+            location.reload();
+        }, 1000); // 10 saniyede bir sayfayı yeniler
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
