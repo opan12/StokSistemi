@@ -179,6 +179,11 @@ namespace StokSistemi.Controllers
             return View("CheckOrder");
         }
         [HttpGet]
+        public IActionResult Sepetim()
+        {
+            return View("Sepetim");
+        }
+        [HttpGet]
         public IActionResult Check()
         {
             return View("Check");

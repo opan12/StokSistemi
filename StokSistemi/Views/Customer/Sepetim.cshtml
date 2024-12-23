@@ -1,0 +1,33 @@
+﻿<h2>Pending Siparişler</h2>
+<ul id="orderList"></ul>
+
+<script>
+    // Pending siparişleri listelemek için kullanılan metod
+    function fetchPendingOrders() {
+        fetch('/api/Order/pending') // Pending siparişler için API çağrısı
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Siparişler alınırken hata oluştu.");
+                }
+                return response.json();
+            })
+            .then(data => {
+                const orderList = document.getElementById("orderList");
+                orderList.innerHTML = ""; // Listeyi temizle
+
+                data.forEach(order => {
+                    const li = document.createElement("li");
+                    li.textContent = `Order ID: ${order.orderId}, Customer ID: ${order.customerId}, Status: ${order.orderStatus}`;
+                    li.setAttribute("data-id", order.orderId); // Sipariş ID'sini sakla
+                    orderList.appendChild(li);
+                });
+            })
+            .catch(error => console.error("Hata:", error));
+    }
+
+    // Her 5 saniyede bir pending siparişleri kontrol et
+    setInterval(fetchPendingOrders, 1);
+
+    // Sayfa yüklendiğinde ilk kez listeyi getir
+    document.addEventListener("DOMContentLoaded", fetchPendingOrders);
+</script>

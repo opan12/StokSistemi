@@ -85,6 +85,17 @@ namespace StokSistemi.Controllers
 
             return Json(new { success = true, message = "Tüm siparişler başarıyla onaylandı." });
         }
+        [HttpGet("pending")]
+        public IActionResult GetPendingOrders()
+        {
+            // OrderStatus "Pending" olan siparişleri listele
+            var pendingOrders = _context.Orders
+                .Where(o => o.OrderStatus == "Pending")
+                .ToList();
+
+            return Ok(pendingOrders);
+        }
+
 
         // Sipariş işleme metodu
         private void ProcessOrder(Order orderQueue)
