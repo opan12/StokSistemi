@@ -125,5 +125,34 @@ namespace StokSistemi.Controllers
                 );
             }
         }
+            [HttpPut("{id}")]
+            public IActionResult UpdateOrder(int id, [FromBody] Order updatedOrder)
+            {
+                if (id != updatedOrder.OrderId)
+                {
+                    return BadRequest("Sipariş ID'si uyuşmuyor.");
+                }
+
+                var existingOrder = _context.Orders.FirstOrDefault(o => o.OrderId == id);
+                if (existingOrder == null)
+                {
+                    return NotFound("Sipariş bulunamadı.");
+                }
+
+                // Mevcut siparişi güncelle
+                existingOrder.CustomerId = updatedOrder.CustomerId;
+                existingOrder.ProductId = updatedOrder.ProductId;
+                existingOrder.Quantity = updatedOrder.Quantity;
+                existingOrder.TotalPrice = updatedOrder.TotalPrice;
+                existingOrder.OrderStatus = updatedOrder.OrderStatus;
+                existingOrder.PriorityScore = updatedOrder.PriorityScore;
+                existingOrder.IsProcessed = updatedOrder.IsProcessed;
+
+                // Veritabanında değişiklikleri kaydet
+                _context.SaveChanges();
+
+                return Ok("Sipariş başarıyla güncellendi.");
+            }
+        }
     }
-}
+    
