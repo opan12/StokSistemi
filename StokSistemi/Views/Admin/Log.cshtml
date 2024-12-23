@@ -1,0 +1,67 @@
+﻿@{
+    ViewData["Title"] = "Loglar";
+}
+
+<h2>Loglar</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Log ID</th>
+            <th>Müşteri ID</th>
+            <th>Log Türü</th>
+            <th>Müşteri Türü</th>
+            <th>Ürün Adı</th>
+            <th>Adet</th>
+            <th>İşlem Zamanı</th>
+            <th>Sonuç Mesajı</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Dinamik olarak JavaScript ile doldurulacak -->
+    </tbody>
+</table>
+
+<script>
+    let lastLogId = 0; // Son alınan log ID'sini saklar
+
+    function fetchLogs() {
+        fetch(`/api/logs?lastLogId=${lastLogId}`)
+            .then(response => {
+                if (!response.ok) throw new Error("Veri alınırken hata oluştu!");
+                return response.json();
+            })
+            .then(data => {
+                const tbody = document.querySelector("table tbody");
+
+                data.forEach(log => {
+                    const row = document.createElement("tr");
+
+                    row.innerHTML = `
+                        <td>${log.logID}</td>
+                        <td>${log.customerID}</td>
+                        <td>${log.logType}</td>
+                        <td>${log.customerType}</td>
+                        <td>${log.productName}</td>
+                        <td>${log.quantity}</td>
+                        <td>${new Date(log.transactionTime).toLocaleString()}</td>
+                        <td>${log.resultMessage}</td>
+                    `;
+
+                    tbody.appendChild(row);
+
+                    // En son gelen log ID'sini güncelle
+                    if (log.logID > lastLogId) {
+                        lastLogId = log.logID;
+                    }
+                });
+            })
+            .catch(error => console.error("Hata:", error));
+    }
+
+    // İlk veri çekimi
+    fetchLogs();
+
+    // Her 5 saniyede bir yeni logları kontrol et
+    setInterval(fetchLogs, 5000);
+</script>

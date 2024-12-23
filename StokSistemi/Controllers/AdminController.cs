@@ -30,7 +30,23 @@ namespace StokSistemi.Controllers
         {
             public static bool IsAdminProcessing { get; set; } = false;
         }
+        [HttpGet]
+        public IActionResult Log()
+        {
+           
+            return View();
+        }
+        [HttpGet]
+        [Route("api/logs")]
+        public IActionResult GetLogs(int lastLogId)
+        {
+            var logs = _context.Logs
+                .Where(log => log.LogID > lastLogId)
+                .OrderBy(log => log.LogID)
+                .ToList();
 
+            return Ok(logs);
+        }
         public IActionResult PendingOrders()
         {
             ViewData["Message"] = TempData["Message"] as string; // TempData'dan mesajı al
