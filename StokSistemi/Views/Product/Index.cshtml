@@ -1,15 +1,15 @@
 ﻿@model IEnumerable<StokSistemi.Models.Product>
 
-<h2>Ürün Yönetimi</h2>
+<h2>Ürünler</h2>
 
-<table>
+<table class="table">
     <thead>
         <tr>
-            <th>Ürün ID</th>
-            <th>Ürün Adı</th>
-            <th>Stok</th>
-            <th>Fiyat</th>
-            <th>İşlemler</th>
+            <th>Product ID</th>
+            <th>Product Name</th>
+            <th>Stock</th>
+            <th>Price</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -18,18 +18,13 @@
             <tr>
                 <td>@product.ProductId</td>
                 <td>@product.ProductName</td>
-                <td>@product.Stock</td>
-                <td>@product.Price</td>
+                <td>@product.Stock</td> <!-- Stok bilgisi burada güncel olarak gösterilir -->
+                <td>@product.Price</td> <!-- Fiyat bilgisi burada güncel olarak gösterilir -->
                 <td>
-                    <form asp-action="Delete" method="post" style="display:inline;">
-                        <input type="hidden" name="id" value="@product.ProductId" />
-                        <button type="submit">Sil</button>
-                    </form>
-                    <a asp-action="Edit" asp-route-id="@product.ProductId">Düzenle</a>
+                    <a href="@Url.Action("Edit", "Product", new { id = product.ProductId })" class="btn btn-warning">Düzenle</a>
+                    <a href="@Url.Action("Delete", "Product", new { id = product.ProductId })" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this product?');">Sil</a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
-
-<a asp-action="Create">Yeni Ürün Ekle</a>

@@ -31,6 +31,10 @@ namespace StokSistemi.Controllers
             _context = context;
             _userManager = userManager;
         }
+        public static class SystemState
+        {
+            public static bool IsAdminProcessing { get; set; } = false;
+        }
 
         public IActionResult Index()
         {
@@ -58,6 +62,7 @@ namespace StokSistemi.Controllers
                 SystemState.IsAdminProcessing = false; // Admin işlemi bittiğinde bayrağı false yap
             }
         }
+
         public IActionResult PlaceOrder(List<Order> orders)
         {
             _mutex.WaitOne(); // Mutex kilidi alınıyor

@@ -2,19 +2,22 @@
 
 <h2>Ürünü Düzenle</h2>
 
-<form asp-action="Edit" method="post">
-    <div>
-        <label>Ürün Adı:</label>
-        <input type="text" asp-for="ProductName" required />
+<form asp-action="Edit" asp-controller="Product">
+    <div class="form-group">
+        <label>Ürün ID</label>
+        <input type="hidden" asp-for="ProductId" />
     </div>
-    <div>
-        <label>Stok:</label>
-        <input type="number" asp-for="Stock" required />
+    <div class="form-group">
+        <label>Ürün Adı</label>
+        <input type="text" class="form-control" asp-for="ProductName" readonly />
     </div>
-    <div>
-        <label>Fiyat:</label>
-        <input type="number" asp-for="Price" required step="0.01" />
+    <div class="form-group">
+        <label>Stok Miktarı</label>
+        <input type="number" class="form-control" asp-for="Stock" />
     </div>
-    <input type="hidden" asp-for="ProductId" />
-    <button type="submit">Güncelle</button>
+    <div class="form-group">
+        <label>Fiyat</label>
+        <input type="text" class="form-control" asp-for="Price" />
+    </div>
+    <button type="submit" class="btn btn-primary">Kaydet</button>
 </form>

@@ -5,6 +5,7 @@ using StokSistemi.Models;
 using StokSistemi.Services;
 using System.Threading;
 using StokSistemi.Service;
+using static StokSistemi.Controllers.CustomerController;
 
 namespace StokSistemi.Controllers
 {
@@ -26,10 +27,7 @@ namespace StokSistemi.Controllers
             var products = _adminService.GetAllProducts(); // Senkron olarak ürünleri getir
             return View(products);
         }
-        public static class SystemState
-        {
-            public static bool IsAdminProcessing { get; set; } = false;
-        }
+      
         [HttpGet]
         public IActionResult Log()
         {
@@ -49,22 +47,17 @@ namespace StokSistemi.Controllers
         }
         public IActionResult PendingOrders()
         {
-            ViewData["Message"] = TempData["Message"] as string; // TempData'dan mesajı al
+            ViewData["Message"] = TempData["Message"] as string; 
 
             var orders = _context.Orders.Where(o => o.OrderStatus == "Pending").ToList();
-            return View(orders); // orders listesini model olarak döndürün
+            return View(orders);
         }
-
-        // Ürün ekleme formu (GET)
         public IActionResult Create()
         {
             SystemState.IsAdminProcessing = true;
 
             return View(); // Ürün ekleme formunu döner
         }
-
-        // Ürün ekleme işlemi (POST)
-        // Ürün ekleme işlemi (POST)
         [HttpPost]
         public IActionResult Create(Product product)
         {
@@ -82,7 +75,6 @@ namespace StokSistemi.Controllers
             }
             finally
             {
-                SystemState.IsAdminProcessing = false;
 
                 _mutex.ReleaseMutex(); // Mutex'i serbest bırak
             }
@@ -91,12 +83,8 @@ namespace StokSistemi.Controllers
         // Ürün güncelleme formu
         public IActionResult Edit(int id)
         {
-            var product = _adminService.GetAllProducts().FirstOrDefault(p => p.ProductId == id);
-            if (product == null)
-            {
-                return NotFound(); // Ürün bulunamazsa hata döndür
-            }
-            return View(product);
+        
+            return View();
         }
 
         // Ürün güncelleme işlemi
@@ -106,11 +94,10 @@ namespace StokSistemi.Controllers
             _mutex.WaitOne(); // Mutex'i beklemeye al
             try
             {
-                if (ModelState.IsValid)
-                {
+              
                     _adminService.UpdateProduct(product); // Ürünü güncelle
                     return RedirectToAction("Index");
-                }
+                
                 return View(product);
             }
             finally
