@@ -24,10 +24,20 @@ namespace StokSistemi.Controllers
         // Tüm ürünleri listele
         public IActionResult Index()
         {
-            var products = _adminService.GetAllProducts(); // Senkron olarak ürünleri getir
-            return View(products);
+            try
+            {
+                SystemState.IsAdminProcessing = true; // Admin işlemi başlatılıyor
+
+                var products = _adminService.GetAllProducts(); // Ürünleri getir
+                return View(products);
+            }
+            finally
+            {
+                SystemState.IsAdminProcessing = false; // İşlem bitince bayrağı sıfırla
+            }
         }
-      
+
+
         [HttpGet]
         public IActionResult Log()
         {

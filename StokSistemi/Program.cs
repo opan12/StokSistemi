@@ -20,6 +20,18 @@ builder.Services.AddIdentity<Customer, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+
+
+
 // Diðer servis kayýtlarý
 builder.Services.AddScoped<AdminService>();
 builder.Services.AddScoped<CustomerQueue>();
@@ -38,6 +50,7 @@ builder.Services.Configure<IdentityOptions>(options =>
 });
 
 var app = builder.Build();
+app.UseSession();
 
 using (var scope = app.Services.CreateScope())
 {

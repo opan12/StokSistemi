@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using StokSistemi.Data;
 using StokSistemi.Models;
+using System.Threading;
 
 namespace StokSistemi.Controllers
 {
@@ -13,12 +14,41 @@ namespace StokSistemi.Controllers
             _context = context;
         }
 
-        // Listeleme
+        private static Mutex _mutex = new Mutex();
         public IActionResult Index()
         {
-            var products = _context.Products.ToList(); // Veritabanından tüm ürünleri listele
-            return View(products);
+            HttpContext.Session.SetString("CurrentPage", "ProductIndex");
+
+            if (!_mutex.WaitOne(0))
+            {
+                return Json(new { success = false, message = "Başka bir işlem devam ediyor." });
+            }
+
+            try
+            {
+                var products = _context.Products.ToList();
+                return View(products);
+            }
+            finally
+            {
+                _mutex.ReleaseMutex();
+            }
         }
+
+        public IActionResult BackToPreviousPage()
+        {
+            // CurrentPage oturum bilgisini temizle
+            HttpContext.Session.Remove("CurrentPage");
+
+            // Log ile kontrol
+            Console.WriteLine("CurrentPage değeri temizlendi.");
+
+            // Önceki sayfaya yönlendir
+            return RedirectToAction("Index", "Admin"); // Burayı istediğiniz önceki sayfa ile değiştirin
+        }
+
+
+
 
         // Detay Gösterimi
         public IActionResult Details(int id)

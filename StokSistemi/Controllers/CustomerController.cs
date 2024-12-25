@@ -36,32 +36,59 @@ namespace StokSistemi.Controllers
             public static bool IsAdminProcessing { get; set; } = false;
         }
 
-        public IActionResult Index()
-        {
-            if (!_mutex.WaitOne(0) || SystemState.IsAdminProcessing) // Mutex alınamıyorsa veya admin işlemi devam ediyorsa
-            {
-                return Json(new { success = false, message = "Admin işlem yapıyor. Lütfen daha sonra tekrar deneyin." });
 
+
+        [HttpGet]
+        public IActionResult CheckRedirect()
+        {
+            var currentPage = HttpContext.Session.GetString("CurrentPage");
+
+            // Eğer kullanıcı ProductIndex'e geçtiyse
+            if (currentPage == "ProductIndex")
+            {
+                return Json(new { redirect = true });
             }
+
+            return Json(new { redirect = false });
+        }
+
+        private static SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+
+        public async Task<IActionResult> Index()
+        {
+            var currentPage = HttpContext.Session.GetString("CurrentPage");
+
+            // Eğer `ProductIndex` oturumda set edilmişse, erişimi engelle
+            if (currentPage == "ProductIndex")
+            {
+                return RedirectToAction("CustomerArea", "Customer");
+            }
+
+            await _semaphore.WaitAsync();
 
             try
             {
-                // Mutex alınmışsa müşteri işlemleri devam eder
                 var model = new CustomerViewModel
                 {
-                    Products = _adminService.GetAllProducts(), // Tüm ürünleri al
-                    LogEntries = _logService.GetAllLogs()      // Tüm logları al
+                    Products = _adminService.GetAllProducts(),
+                    LogEntries = _logService.GetAllLogs()
                 };
 
                 return View(model);
             }
             finally
             {
-                // Admin işlemi bitince Mutex serbest bırakılır ve SystemState.IsAdminProcessing false yapılır
-                _mutex.ReleaseMutex();
-                SystemState.IsAdminProcessing = false; // Admin işlemi bittiğinde bayrağı false yap
+                _semaphore.Release();
             }
         }
+
+
+
+
+
+
+
+
 
         public IActionResult PlaceOrder(List<Order> orders)
         {
@@ -233,14 +260,22 @@ namespace StokSistemi.Controllers
     [HttpGet]
         public async Task<IActionResult> CustomerArea(string username)
         {
+            if (string.IsNullOrEmpty(username))
+            {
+                // Kullanıcı adı boşsa veya null ise bir hata döndür veya bir başka sayfaya yönlendir
+                return BadRequest("Hata lütfen daha sonra tekrar deneyin.");
+            }
+
             var user = await _userManager.FindByNameAsync(username);
             if (user == null)
             {
-                return Unauthorized("Kullanıcı girişi yapılmadı veya bulunamadı."); // Kullanıcı bulunamazsa yetkisiz erişim
+                return NotFound("Kullanıcı bulunamadı.");
             }
 
-            return View(user); // Kullanıcı bilgilerini göster
+            // Kullanıcı işlemlerine devam et
+            return View(user);
         }
+
 
         private void AddLog(string customerId, string logType, string customerType, string productName, int quantity, string resultMessage)
         {
