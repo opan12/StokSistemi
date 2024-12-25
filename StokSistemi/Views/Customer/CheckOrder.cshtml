@@ -29,11 +29,12 @@
                             <th>Adet</th>
                             <th>Sipariş Tarihi</th>
                             <th>Durum</th>
+                            <th>Animasyon</th>
                         </tr>
                     </thead>
                     <tbody id="orderTableBody">
                         <tr>
-                            <td colspan="5" class="text-center">Sipariş bilgisi yükleniyor...</td>
+                            <td colspan="6" class="text-center">Sipariş bilgisi yükleniyor...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -55,14 +56,22 @@
 
                             orders.forEach(function (order) {
                                 var statusClass = "";
+                                var animationHtml = "";
+
                                 if (order.orderStatus === "Pending") {
                                     statusClass = "text-warning";
-                                } else if (order.orderStatus === "Sipariş Verildi") {
+                                    animationHtml = `<div class="spinner-border text-warning" role="status">
+                                                                <span class="visually-hidden">Loading...</span>
+                                                            </div>`;
+                                } else if (order.orderStatus === "Tamamlandı") {
                                     statusClass = "text-success";
+                                    animationHtml = `<i class="fas fa-check-circle text-success"></i>`;
                                 } else if (order.orderStatus === "Stok Yetersiz") {
                                     statusClass = "text-danger";
-                                } else if (order.orderStatus === "Onaylandı") {
+                                    animationHtml = `<i class="fas fa-times-circle text-danger"></i>`;
+                                } else if (order.orderStatus === "İşleniyor") {
                                     statusClass = "text-primary";
+                                    animationHtml = `<i class="fas fa-thumbs-up text-primary"></i>`;
                                 }
 
                                 tableBody.append(`
@@ -72,15 +81,16 @@
                                                 <td>${order.quantity}</td>
                                                 <td>${new Date(order.orderDate).toLocaleString('tr-TR')}</td>
                                                 <td class="${statusClass}">${order.orderStatus}</td>
+                                                <td>${animationHtml}</td>
                                             </tr>
                                         `);
                             });
                         } else {
-                            $('#orderTableBody').html(`<tr><td colspan="5" class="text-center">${response.message}</td></tr>`);
+                            $('#orderTableBody').html(`<tr><td colspan="6" class="text-center">${response.message}</td></tr>`);
                         }
                     },
                     error: function () {
-                        $('#orderTableBody').html('<tr><td colspan="5" class="text-center">Sipariş durumu alınırken bir hata oluştu.</td></tr>');
+                        $('#orderTableBody').html('<tr><td colspan="6" class="text-center">Sipariş durumu alınırken bir hata oluştu.</td></tr>');
                     }
                 });
             }
