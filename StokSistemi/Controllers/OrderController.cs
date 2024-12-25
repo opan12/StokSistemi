@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace StokSistemi.Controllers
 {
-    [Authorize(Roles = "Admin")]
+   
     public class OrderController : Controller
     {
         private readonly ApplicationDbContext _context;

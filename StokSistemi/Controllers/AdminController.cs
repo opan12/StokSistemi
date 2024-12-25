@@ -116,7 +116,7 @@ namespace StokSistemi.Controllers
             }
         }
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        
         public IActionResult ApproveAllOrders()
         {
             var pendingOrders = _context.Orders
