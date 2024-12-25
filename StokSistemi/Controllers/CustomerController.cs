@@ -61,8 +61,19 @@ namespace StokSistemi.Controllers
             // Eğer `ProductIndex` oturumda set edilmişse, erişimi engelle
             if (currentPage == "ProductIndex")
             {
-                return RedirectToAction("CustomerArea", "Customer");
+                var referer = Request.Headers["Referer"].ToString();
+                if (!string.IsNullOrEmpty(referer))
+                {
+                    TempData["ErrorMessage"] = "Admin işlem yapıyor lütfen bekleyin."; // Hata mesajını sakla
+                    return Redirect(referer); // Önceki sayfaya yönlendir
+                }
+
+                // Eğer `Referer` yoksa hiçbir şey yapma ve mevcut sayfada kal
+                return new EmptyResult(); // Hiçbir işlem yapılmaz
             }
+
+            // `CurrentPage` oturum bilgisini güncelle
+            HttpContext.Session.SetString("CurrentPage", "CustomerIndex");
 
             await _semaphore.WaitAsync();
 
@@ -81,7 +92,6 @@ namespace StokSistemi.Controllers
                 _semaphore.Release();
             }
         }
-
 
 
 

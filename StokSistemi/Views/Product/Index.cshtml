@@ -1,4 +1,14 @@
 ﻿@model IEnumerable<StokSistemi.Models.Product>
+@{
+    var errorMessage = ViewData["ErrorMessage"] as string;
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @errorMessage
+    </div>
+}
 
 <h2>Ürünler</h2>
 

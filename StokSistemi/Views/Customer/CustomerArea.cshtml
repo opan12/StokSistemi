@@ -58,7 +58,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/Customer/Index">
+                        <a class="nav-link" href="/Customer/Index" onclick="return checkCurrentPage();">
                             <i class="fas fa-plus-circle"></i> Sipariş Oluştur
                         </a>
                     </li>
@@ -83,10 +83,29 @@
     <!-- Navbar Bitişi -->
 
     <div class="container mt-4">
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger" role="alert">
+                @TempData["ErrorMessage"]
+            </div>
+        }
+
         <h1 class="display-6">Hoşgeldin, @User.Identity.Name!</h1>
 
         <!-- İçerik burada olacak -->
     </div>
 
+
+    <script>
+    function checkCurrentPage() {
+        // Örnek: `CurrentPage`'i kontrol etmek için bir AJAX isteği gönderilebilir
+        const currentPage = sessionStorage.getItem("CurrentPage"); // Örnek kullanım
+        if (currentPage === "ProductIndex") {
+            alert("Bu sayfadan 'Sipariş Oluştur' işlemine erişilemez.");
+            return false; // Bağlantıyı engelle
+        }
+        return true; // Normal davranışı sürdür
+    }
+</script>
 </body>
 </html>
