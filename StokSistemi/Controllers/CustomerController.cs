@@ -115,6 +115,8 @@ namespace StokSistemi.Controllers
                     return RedirectToAction("OrderPage"); // İlgili sayfaya yönlendirme
                 }
 
+                string lastProductName = "N/A";
+
                 foreach (var order in orders)
                 {
                     if (order.Quantity <= 0)
@@ -145,6 +147,8 @@ namespace StokSistemi.Controllers
                         return RedirectToAction("Index");
                     }
 
+                    lastProductName = product.ProductName; // En son işlenen ürünün adını saklıyoruz
+
                     // Siparişi oluştur
                     var newOrder = CreateOrder(customerId, order, product);
                     newOrder.EnqueueTime = DateTime.Now;
@@ -154,7 +158,7 @@ namespace StokSistemi.Controllers
 
                 _context.SaveChanges();
 
-                AddLog(customerId, "PlaceOrder", customer.CustomerType, "N/A", orders.Count, "Sipariş(ler) başarıyla verildi.");
+                AddLog(customerId, "PlaceOrder", customer.CustomerType, lastProductName, orders.Count, "Sipariş(ler) başarıyla verildi."); // Burada lastProductName kullanılıyor
                 TempData["SuccessMessage"] = "Sipariş(ler) başarıyla verildi.";
                 return RedirectToAction("Index");
             }
@@ -169,6 +173,7 @@ namespace StokSistemi.Controllers
                 _mutex.ReleaseMutex(); // Mutex kilidi serbest bırakılıyor
             }
         }
+
 
         // Sipariş kuyruğuna siparişi ekleyen metot
 
